@@ -1,0 +1,38 @@
+{
+  "summary": "Tested backend (11 pytest tests, all pass) and the full Expo web UI at 390x844 via Playwright. GOOD mode works end to end: login validation, notes list, filters (all 8, notes 3, tasks 5, open 4, done 1), checkbox, delete removes the tapped row, editor create/edit, empty-title error, opening a completed task, the mode badge, and text survives rotation. Every BROKEN bug shows up only when its toggle is on: forms, buttons, crash, rotation and slow all behave as specified. Good mode is unaffected after visiting broken mode. No real functional bugs found. Only minor polish notes. Deprecated packages: none detected (no expo-av, expo-barcode-scanner or expo-background-fetch).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST/PATCH /api/notes", "issue": "No server-side length or empty-title validation. The client does all validation. This is intentional so broken-forms can save empty titles, but the API accepts titles of any length."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Broken buttons + editor double-tap save", "issue": "Both save calls run router.back(). The second pop goes past the notes screen to the bug picker (stack: / > bugs > notes > editor). The duplicate is created as intended, but the user lands on CHOOSE FAILURES instead of the notes list. This may be acceptable as part of the misbehaving-buttons demo; confirm it is intended.", "testID": "editor-save-button", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Mode select / Bug picker", "issues": ["A tap during the first ~0.5s entering animation (FadeInDown / FadeInRight) is ignored on web. choose-broken-mode and bug-toggle-* did nothing when tapped right after mount, and worked after the animation settled."]},
+      {"screen": "Bug picker", "issues": ["bug-toggle-* uses accessibilityState={{checked}}. On web this does not produce aria-checked (got null). Consider aria-checked / the 'checked' a11y prop so screen readers and tests can read the switch state. The same applies to note-checkbox-*."]},
+      {"screen": "Error fallback", "issues": ["The 'Show details' link has no testID."]}
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_notes_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: in editor save with broken buttons, guard router.back() (e.g. only navigate if router.canGoBack() and the screen is still focused). This keeps the duplicate-create bug but avoids popping to the bug picker. Skip if the current behaviour is intended.",
+    "Optional: use aria-checked (or the checked prop) on the bug-toggle and note-checkbox Pressables so web/a11y can read their state.",
+    "Optional: add a testID to the error-fallback 'Show details' link."
+  ],
+  "critical_code_review_comments": [
+    "Code is clean. isBroken() is gated on mode==='broken', so good mode can never trigger bugs (verified via broken -> back -> good).",
+    "On web, reloading the page directly on /demo/* keeps the user on that screen with mode reset to GOOD, because config is in memory. The error-fallback reload button correctly goes to '/'. Web-only minor behaviour."
+  ],
+  "updated_files": ["/app/backend/tests/test_notes_api.py"],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% of requested flows verified (minor UX notes only)"},
+  "seed_data_creation": "Used POST /api/notes/reset via login. Some TEST_ notes may remain until the next login/reset.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Wait ~1.5s after mode-select loads and ~1s after the bug picker mounts before tapping (entering animations swallow early taps). Broken-buttons login: the 1st tap is swallowed and the 2nd works, with a shared counter across taps. Slow mode: login blocks ~2.5s, rows appear ~5.8s after tap, no skeleton. Crash fallback testID is error-fallback, reload button is error-fallback-reload, which goes to '/'. Run backend tests with EXPO_PUBLIC_BACKEND_URL exported from frontend/.env (the key is EXPO_PUBLIC_BACKEND_URL, not EXPO_BACKEND_URL).",
+  "rca_of_issue": "Double-save navigation: in broken-buttons mode setSaving(true) is skipped, so the button stays enabled. Both save() calls await create() and then call router.back(), which pops two screens."
+}

@@ -1,0 +1,145 @@
+{
+  "app_name": "QA_Fail_Test",
+  "personality": "5 Brutalist Mobile",
+  "personality_one_liner": "Raw, exposed structural utility designed for testing failure states aggressively.",
+  "color": {
+    "surface": "#FFFFFF",
+    "onSurface": "#000000",
+    "surfaceSecondary": "#F5F5F5",
+    "onSurfaceSecondary": "#000000",
+    "surfaceTertiary": "#E5E5E5",
+    "onSurfaceTertiary": "#000000",
+    "surfaceInverse": "#000000",
+    "onSurfaceInverse": "#FFFFFF",
+    "brand": "#000000",
+    "onBrand": "#FFFFFF",
+    "brandPrimary": "#000000",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#F5F5F5",
+    "onBrandSecondary": "#000000",
+    "brandTertiary": "#E5E5E5",
+    "onBrandTertiary": "#000000",
+    "success": "#34C759",
+    "onSuccess": "#FFFFFF",
+    "warning": "#FFCC00",
+    "onWarning": "#000000",
+    "error": "#FF3B30",
+    "onError": "#FFFFFF",
+    "info": "#000000",
+    "onInfo": "#FFFFFF",
+    "border": "#E5E5E5",
+    "borderStrong": "#000000",
+    "divider": "#000000",
+    "muted": "#888888"
+  },
+  "typography": {
+    "displayFontFamily": "Space Grotesk",
+    "textFontFamily": "JetBrains Mono",
+    "scale": { "sm": 12, "base": 14, "lg": 16, "xl": 20, "2xl": 24 }
+  },
+  "spacing": {
+    "rule": "Aggressive, intentional padding. Structural grids.",
+    "xs": 4, "sm": 8, "md": 12, "lg": 16, "xl": 24, "2xl": 32, "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 0, "md": 0, "lg": 0, "pill": 0
+  },
+  "shadow_tier": "0",
+  "navigation": "stack_only",
+  "icon_set": "Feather",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [],
+    "dont's": ["Absolutely no blur or glass. Everything is raw, flat, and hard-edged."]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "none",
+      "android": "none",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "none",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "ModeSelection",
+      "purpose": "Select between Good or Broken app experience.",
+      "states": {
+        "loading": "Raw spinner centered on stark white.",
+        "empty": "N/A",
+        "error": "Monospace error block."
+      },
+      "layout": "Split-screen vertically. Top half GOOD mode (green accent, perfect geometric abstract image), Bottom half BROKEN mode (red accent, chaotic abstract image). Massive uppercase typography. Hard 2pt border separating sections."
+    },
+    {
+      "name": "BugPickerDashboard",
+      "purpose": "Toggle specific bugs to activate in the Broken version.",
+      "states": {
+        "loading": "Skeleton of raw rectangles.",
+        "empty": "N/A",
+        "error": "Error block with retry button."
+      },
+      "layout": "Edge-to-edge list of toggles. Each row has a hard 2pt bottom border (`borderStrong`). Large typography for bug name, monospace for description. Square brutalist toggle switches. Sticky CTA 'START DEMO' at bottom."
+    },
+    {
+      "name": "DemoLogin",
+      "purpose": "Simple form to demonstrate 'broken form checks' bug.",
+      "states": {
+        "loading": "Standard button loading state",
+        "empty": "N/A",
+        "error": "Error messages appear aggressively below inputs."
+      },
+      "layout": "Labels above inputs. Inputs have `borderStrong` 2pt border, square corners. Massive solid black 'LOGIN' button at the bottom."
+    },
+    {
+      "name": "DemoNotesList",
+      "purpose": "List of notes and tasks to demonstrate 'slow/laggy' and 'misbehaving buttons' bugs.",
+      "states": {
+        "loading": "List skeleton",
+        "empty": "Raw vector icon, monospace 'NO NOTES FOUND'.",
+        "error": "Red error text block."
+      },
+      "layout": "Edge-to-edge list. Each note is a row separated by 2pt `borderStrong`. Checkboxes are raw hard squares. Floating '+ NEW NOTE' button (square FAB)."
+    },
+    {
+      "name": "DemoNoteEditor",
+      "purpose": "Write note to demonstrate 'rotation loses typed data' and 'save crash' bugs.",
+      "states": {
+        "loading": "Spinner",
+        "empty": "N/A",
+        "error": "N/A"
+      },
+      "layout": "Full bleed text area without visible input border (just screen padding). Sticky massive 'SAVE' button at bottom. Floating mode badge sits absolute at top right."
+    }
+  ],
+  "images": {
+    "good_mode_hero": {
+      "url": "https://images.unsplash.com/photo-1605106702842-01a887a31122?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGBlcmZlY3RseSUyMG9yZ2FuaXplZCUyMGdlb21ldHJpYyUyMHNoYXBlc3xlbnwwfHx8fDE3OTMxNDQzNDB8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Perfectly organized geometric shapes representing good mode"
+    },
+    "bad_mode_hero": {
+      "url": "https://images.unsplash.com/photo-1700605920874-f621a75c6c17?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGNoYW90aWMlMjBicm9rZW4lMjBnZW9tZXRyaWMlMjBzaGFwZXN8ZW58MHx8fHwxNzkzMTQ0MzQwfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Chaotic broken geometric shapes representing bad mode"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Apply 5 Brutalist Mobile personality. Zero border radius anywhere.",
+    "Hard 2pt black borders (`borderStrong`) for structural separation, inputs, and layout frames.",
+    "Use Space Grotesk for display and JetBrains Mono for body/labels.",
+    "Implement the 5 bugs purely in logic/state: broken form checks (don't validate email/password), misbehaving buttons (e.g., save tap saves twice or does nothing randomly), app crashes (throw unhandled exception), rotation loses typed data (clear state on mount/unmount simulating rotation remount), slow and battery-heavy (synchronous heavy loops causing lag).",
+    "No explanatory UI about the bugs in the demo app. Only the dashboard describes them.",
+    "Floating mode badge: A hard-edged floating square `borderStrong` bordered pill that returns user to Dashboard. Must be visible in the demo app.",
+    "Implement the Sticky CTA pattern exactly: `position: fixed` equivalent (View pinned to bottom), outside ScrollView.",
+    "Images for Good/Bad modes must have a gradient-to-dark scrim if text is overlaid."
+  ],
+  "haptics": {
+    "mode_select": "heavy",
+    "bug_toggle": "light",
+    "button_press": "medium",
+    "broken_button_press": "error"
+  }
+}
