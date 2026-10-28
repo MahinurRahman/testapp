@@ -5,10 +5,12 @@ import { ActivityIndicator, Pressable, Text, TextInput, useWindowDimensions, Vie
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { api, type Note } from "@/src/api";
+import { api, type Note, OfflineError } from "@/src/api";
 import { burnCpu, sleep, useBugs } from "@/src/bug-config";
 import { BigButton, DemoHeader } from "@/src/components/ui";
+import { useOffline } from "@/src/offline";
 import { fonts, makeStyles, useTheme } from "@/src/theme";
+import { formatTime } from "@/src/time";
 
 export default function EditorScreen() {
   const styles = useStyles();
@@ -19,14 +21,21 @@ export default function EditorScreen() {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState("");
+  const { getCachedNotes } = useOffline();
+  const brokenOffline = isBroken("offline");
 
   useEffect(() => {
     if (!id) return;
     api
       .get(id)
       .then(setNote)
-      .catch(() => setError("Could not load this note."))
+      .catch(async (e) => {
+        const cached = e instanceof OfflineError && !brokenOffline ? (await getCachedNotes()).find((n) => n.id === id) : undefined;
+        if (cached) setNote(cached);
+        else setError("Could not load this note.");
+      })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Broken "crash": opening a completed task blows up the render.
@@ -59,6 +68,7 @@ function EditorForm({ note }: { note: Note | null }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { isBroken } = useBugs();
+  const { enqueue } = useOffline();
   const [title, setTitle] = useState(note?.title ?? "");
   const [body, setBody] = useState(note?.body ?? "");
   const [isTask, setIsTask] = useState(note?.is_task ?? false);
@@ -97,18 +107,33 @@ function EditorForm({ note }: { note: Note | null }) {
     }
     setSaveError("");
     if (!brokenButtons) setSaving(true);
-    try {
-      await sleep(700);
-      const data = isBroken("forms")
-        ? { title, body, is_task: isTask }
-        : { title: title.trim(), body: body.trim(), is_task: isTask };
-      if (note) await api.update(note.id, data);
-      else await api.create(data);
+    const data = isBroken("forms")
+      ? { title, body, is_task: isTask }
+      : { title: title.trim(), body: body.trim(), is_task: isTask };
+    const goBack = () => {
       if (!wentBack.current) {
         wentBack.current = true;
         router.back();
       }
-    } catch {
+    };
+    try {
+      await sleep(700);
+      if (note) await api.update(note.id, data);
+      else await api.create(data);
+      goBack();
+    } catch (e) {
+      if (e instanceof OfflineError) {
+        // Good: queue for later sync. Broken: pretend it saved; the change is lost.
+        if (!isBroken("offline")) {
+          enqueue(
+            note
+              ? { kind: "update", id: note.id, data }
+              : { kind: "create", tempId: `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, data },
+          );
+        }
+        goBack();
+        return;
+      }
       setSaveError("Save failed. Try again.");
       setSaving(false);
     }
@@ -133,6 +158,11 @@ function EditorForm({ note }: { note: Note | null }) {
           </View>
           <Text style={styles.taskLabel}>THIS IS A TASK</Text>
         </Pressable>
+        {note ? (
+          <Text style={styles.created} testID="editor-created-time">
+            CREATED {formatTime(note.created_at, isBroken("timezone"))}
+          </Text>
+        ) : null}
 
         <TextInput
           testID="editor-title-input"
@@ -169,7 +199,13 @@ function EditorForm({ note }: { note: Note | null }) {
 
       <KeyboardStickyView offset={{ closed: 0, opened: insets.bottom }}>
         <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-          <BigButton testID="editor-save-button" label="SAVE" loading={saving} onPress={save} />
+          <BigButton
+            testID="editor-save-button"
+            label="SAVE"
+            loading={saving}
+            onPress={save}
+            style={isBroken("layout") ? styles.saveOverflow : undefined}
+          />
         </View>
       </KeyboardStickyView>
     </View>
@@ -185,6 +221,8 @@ const useStyles = makeStyles((c) => ({
   check: { width: 26, height: 26, borderWidth: 2, borderColor: c.borderStrong, alignItems: "center", justifyContent: "center" },
   checkOn: { backgroundColor: c.brandPrimary },
   taskLabel: { fontFamily: fonts.mono, fontSize: 12, fontWeight: "700", color: c.onSurface },
+  created: { fontFamily: fonts.mono, fontSize: 12, color: c.muted, marginBottom: 8 },
+  saveOverflow: { width: 640, marginLeft: 120 },
   title: {
     fontFamily: fonts.display,
     fontSize: 28,

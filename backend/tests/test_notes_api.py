@@ -90,3 +90,22 @@ class TestErrors:
         kw = {"json": {"done": True}} if method == "patch" else {}
         r = getattr(s, method)(f"{API}/notes/0123456789abcdef01234567", **kw)
         assert r.status_code == 404
+
+
+# Fixed seed timestamps (iteration 2): 2026-01-15 09:30 UTC, each 5h earlier, newest first
+class TestResetTimestamps:
+    def test_reset_fixed_timestamps(self, s):
+        from datetime import datetime, timedelta, timezone
+        r = s.post(f"{API}/notes/reset")
+        assert r.status_code == 200
+        notes = r.json()
+        assert len(notes) == 8
+        base = datetime(2026, 1, 15, 9, 30, tzinfo=timezone.utc)
+        got = sorted([datetime.fromisoformat(n["created_at"].replace("Z", "+00:00")) for n in notes], reverse=True)
+        for i, dt in enumerate(got):
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            assert dt == base - timedelta(hours=5 * i), f"idx {i}: {dt}"
+        # Repeat reset is deterministic
+        r2 = s.post(f"{API}/notes/reset").json()
+        assert sorted(n["created_at"] for n in r2) == sorted(n["created_at"] for n in notes)

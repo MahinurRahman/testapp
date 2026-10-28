@@ -2,12 +2,13 @@ import Feather from "@react-native-vector-icons/feather";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { type Mode, useBugs } from "@/src/bug-config";
+import { BUG_KEYS, type BugKey, type Mode, useBugs } from "@/src/bug-config";
 import { fonts, makeStyles } from "@/src/theme";
 
 const GOOD_IMG =
@@ -22,7 +23,23 @@ const ON_PHOTO = "#FFFFFF";
 export default function ModeSelect() {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const { setMode } = useBugs();
+  const { setMode, setBugList } = useBugs();
+  const params = useLocalSearchParams<{ mode?: string; bugs?: string }>();
+  const launched = useRef(false);
+
+  // Launch link for automated test systems, e.g. /?mode=broken&bugs=offline,timezone (or bugs=all)
+  useEffect(() => {
+    if (launched.current || (params.mode !== "good" && params.mode !== "broken")) return;
+    launched.current = true;
+    setMode(params.mode);
+    if (params.mode === "broken") {
+      const raw = (params.bugs ?? "").split(",").map((s) => s.trim());
+      setBugList(raw.includes("all") ? BUG_KEYS : (raw.filter((k) => BUG_KEYS.includes(k as BugKey)) as BugKey[]));
+    } else {
+      setBugList([]);
+    }
+    router.push("/demo/login");
+  }, [params.mode, params.bugs, setMode, setBugList]);
 
   const choose = (m: Mode) => {
     if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});

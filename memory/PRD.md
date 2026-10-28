@@ -20,6 +20,13 @@ An app with 2 parts: every feature has a good and a bad version. At start the us
 - Mode badge on every demo screen returns to start
 - Tested: backend 11/11, frontend all flows pass
 
+## Iteration 2 (2026-06)
+- 4 new failures: offline data loss (good mode queues changes + syncs later), layout overflow, memory leak (list duplicates per return), wrong timezone (UTC+14)
+- Network toggle (testID network-toggle) in every demo header simulates offline; real connection also detected
+- Launch link for automated testers: /?mode=good or /?mode=broken&bugs=offline,timezone (or bugs=all)
+- Fixed seed timestamps; identical testIDs in both modes; config persisted across reloads
+- Tested: iterations 2 & 3 pass
+
 ## Backlog
 - P1: Persist config across web refresh (optional), more bug types (network offline, memory leak, layout overflow)
 - P2: Side-by-side compare view, accessibility states on toggles

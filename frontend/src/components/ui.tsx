@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, Text, View, type ViewStyle } from "react-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBugs } from "@/src/bug-config";
+import { useOffline } from "@/src/offline";
 import { fonts, makeStyles, useTheme } from "@/src/theme";
 
 export function ModeBadge() {
@@ -24,10 +25,30 @@ export function ModeBadge() {
   );
 }
 
+export function NetworkToggle() {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { isOffline, simulatedOffline, setSimulatedOffline } = useOffline();
+  return (
+    <Pressable
+      testID="network-toggle"
+      accessibilityRole="switch"
+      accessibilityLabel={isOffline ? "offline" : "online"}
+      accessibilityState={{ checked: !isOffline }}
+      onPress={() => setSimulatedOffline(!simulatedOffline)}
+      style={[styles.backBtn, isOffline && styles.netOff]}
+    >
+      <Feather name={isOffline ? "wifi-off" : "wifi"} size={20} color={isOffline ? colors.onError : colors.onSurface} />
+    </Pressable>
+  );
+}
+
 export function DemoHeader({ title, onBack, right }: { title: string; onBack?: () => void; right?: ReactNode }) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { isBroken } = useBugs();
+  const overflow = isBroken("layout");
   return (
     <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
       {onBack ? (
@@ -35,10 +56,15 @@ export function DemoHeader({ title, onBack, right }: { title: string; onBack?: (
           <Feather name="arrow-left" size={22} color={colors.onSurface} />
         </Pressable>
       ) : null}
-      <Text style={styles.headerTitle} numberOfLines={1} testID="header-title">
-        {title}
+      <Text
+        style={[styles.headerTitle, overflow && styles.headerTitleOverflow]}
+        numberOfLines={overflow ? undefined : 1}
+        testID="header-title"
+      >
+        {overflow ? `${title} — your workspace` : title}
       </Text>
       {right}
+      <NetworkToggle />
       <ModeBadge />
     </View>
   );
@@ -115,7 +141,9 @@ const useStyles = makeStyles((c) => ({
     backgroundColor: c.surface,
   },
   backBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: c.borderStrong },
-  headerTitle: { flex: 1, fontFamily: fonts.display, fontSize: 24, fontWeight: "700", color: c.onSurface, textTransform: "uppercase" },
+  netOff: { backgroundColor: c.error },
+  headerTitleOverflow: { flexGrow: 0, flexShrink: 0, flexBasis: 420, width: 420 },
+  headerTitle: { flex: 1, fontFamily: fonts.display, fontSize: 20, fontWeight: "700", color: c.onSurface, textTransform: "uppercase" },
   big: { height: 56, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: c.borderStrong },
   bigDark: { backgroundColor: c.brandPrimary },
   bigLight: { backgroundColor: c.surface },

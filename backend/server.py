@@ -132,9 +132,10 @@ async def delete_note(note_id: str):
 async def reset_notes():
     await db.notes.delete_many({})
     notes = []
-    base = datetime.now(timezone.utc).timestamp()
+    # Fixed timestamps so every run shows identical data (good vs broken comparison).
+    base = datetime(2026, 1, 15, 9, 30, tzinfo=timezone.utc).timestamp()
     for i, (title, body, is_task, done) in enumerate(SEED):
-        ts = datetime.fromtimestamp(base - i, tz=timezone.utc).isoformat()
+        ts = datetime.fromtimestamp(base - i * 5 * 3600, tz=timezone.utc).isoformat()
         n = Note(title=title, body=body, is_task=is_task, done=done, created_at=ts, updated_at=ts)
         res = await db.notes.insert_one(n.to_mongo())
         n.id = str(res.inserted_id)

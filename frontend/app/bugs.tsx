@@ -112,7 +112,7 @@ const useStyles = makeStyles((c) => ({
     backgroundColor: c.surfaceInverse,
   },
   counter: { fontFamily: fonts.mono, fontSize: 14, fontWeight: "700", color: c.onSurfaceInverse },
-  allBtn: { height: 36, paddingHorizontal: 12, justifyContent: "center", borderWidth: 2, borderColor: c.onSurfaceInverse },
+  allBtn: { height: 44, paddingHorizontal: 12, justifyContent: "center", borderWidth: 2, borderColor: c.onSurfaceInverse },
   allText: { fontFamily: fonts.mono, fontSize: 12, fontWeight: "700", color: c.onSurfaceInverse },
   row: {
     flexDirection: "row",

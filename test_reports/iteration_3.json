@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend retest of the iteration 2 fixes on a 375x667 viewport against the public URL. All 4 fixes are verified, and the regression checks pass. (1) Memory leak in broken mode: rows go 8 -> 16 -> 24 on each return from the editor. Good mode stays at 8. (2) Network toggle: going offline makes 0 GET /api/notes calls and going back online makes 1. A note created offline shows PENDING SYNC and the banner shows '1 CHANGE WILL SYNC'. Back online, it syncs and appears on the server GET /api/notes. (3) Config persists across a reload of /demo/notes: the badge still shows BROKEN x1 and times are still shifted +14h. Opening /?mode=good overrides the saved config and shows GOOD, which also persists. Reloading / or /bugs keeps the saved bugs (9/9). (3b) In memory mode, going back via the mode badge and logging in again resets the list to 8 rows; the next return gives 16. (4) toggle-all-bugs is now 91x44. Regression: launch links with several bugs (offline,timezone,bogus gives x2; all gives x9) work. Layout overflow works (row bodies extend to 576px on a 375px viewport and the header title is too long). Broken offline mode still loses data (no banner, 0 rows, the note created offline never reaches the server). Deprecated packages detected: none.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional: when coming back online with queued changes, notes.tsx makes 2 GET /api/notes calls: one from the isOffline effect and one from the post-sync syncVersion reload. The first can race with the outbox flush. Nothing wrong shows in the UI, because applyOutbox still marks the queued note as pending. You could skip the isOffline reload when outbox.length > 0 and let the sync reload handle it."
+  ],
+  "critical_code_review_comments": [
+    "In bug-config.tsx, the hydrated ref plus explicit-choice override works because the child index.tsx effect runs before the parent BugProvider storage read finishes. This is correct but depends on that ordering.",
+    "Note-row checkbox is 28x28 with hitSlop 8, giving a 44pt effective target. OK."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not requested)", "frontend": "100%"},
+  "seed_data_creation": "Created the TEST_offline_note_it3 note via the offline flow. Each login resets the data through api.reset.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Public URL is EXPO_PUBLIC_BACKEND_URL in frontend/.env. Use page.request for API checks. Login is any email plus an 8+ character password (test@example.com / password123). The editor's back button is [data-testid=editor-screen] [data-testid=header-back-button]. Browser timezone is UTC: good times are Jan 15 09:30, and the timezone bug shifts them +14h to 23:30. The mode badge goes to the mode-select screen (/); logging in again clears the leaked listeners."
+}

@@ -4,9 +4,10 @@ import { Pressable, Text, TextInput, useWindowDimensions, View } from "react-nat
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { api } from "@/src/api";
-import { burnCpu, useBugs } from "@/src/bug-config";
+import { api, OfflineError } from "@/src/api";
+import { burnCpu, leakedHeap, leakedListeners, useBugs } from "@/src/bug-config";
 import { BigButton, DemoHeader } from "@/src/components/ui";
+import { useOffline } from "@/src/offline";
 import { fonts, makeStyles, useTheme } from "@/src/theme";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -30,6 +31,7 @@ function LoginForm() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { isBroken } = useBugs();
+  const { clearOffline } = useOffline();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -64,9 +66,12 @@ function LoginForm() {
     setLoading(true);
     try {
       await api.reset();
+      clearOffline();
+      leakedListeners.length = 0;
+      leakedHeap.length = 0;
       router.replace("/demo/notes");
-    } catch {
-      setNetError("Could not reach the server. Try again.");
+    } catch (e) {
+      setNetError(e instanceof OfflineError ? "You're offline. Connect to sign in." : "Could not reach the server. Try again.");
     } finally {
       setLoading(false);
     }

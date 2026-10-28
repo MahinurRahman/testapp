@@ -7,6 +7,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { BugProvider } from "@/src/bug-config";
 import { ErrorBoundary } from "@/src/components/error-boundary";
+import { OfflineProvider } from "@/src/offline";
 import { queryClient } from "@/src/query-client";
 
 // Disable logbox errors etc so that users can see the app
@@ -30,7 +31,9 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <KeyboardProvider>
             <BugProvider>
-              <Stack screenOptions={{ headerShown: false }} />
+              <OfflineProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+              </OfflineProvider>
             </BugProvider>
           </KeyboardProvider>
         </QueryClientProvider>

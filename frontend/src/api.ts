@@ -10,11 +10,28 @@ export type Note = {
   updated_at: string;
 };
 
+let offline = false;
+export function setApiOffline(v: boolean) {
+  offline = v;
+}
+
+export class OfflineError extends Error {
+  constructor() {
+    super("No connection");
+  }
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(BASE + path, {
-    ...init,
-    headers: { "Content-Type": "application/json" },
-  });
+  if (offline) throw new OfflineError();
+  let res: Response;
+  try {
+    res = await fetch(BASE + path, {
+      ...init,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    throw new OfflineError();
+  }
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
   return res.json();
 }
